@@ -1,17 +1,21 @@
 package com.example.sampleapppd
 
-import android.Manifest
 import android.bluetooth.BluetoothDevice
-import android.content.pm.PackageManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import android.os.Bundle
-import android.view.View
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import com.github.mikephil.charting.charts.LineChart
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,23 +23,32 @@ class MainActivity : AppCompatActivity() {
     private lateinit var wattageHarvestedTextView: TextView
     private lateinit var wattageConsumedTextView: TextView
     private lateinit var lineChart: LineChart
-    private val bluetoothManager = BluetoothManager()
-
-    // Define the request code for Bluetooth permissions
-    private val REQUEST_BLUETOOTH_PERMISSIONS = 1
+    private val bluetoothManager = BluetoothManager(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize UI components
         batteryLevelTextView = findViewById(R.id.batteryLevelTextView)
         wattageHarvestedTextView = findViewById(R.id.wattageHarvestedTextView)
         wattageConsumedTextView = findViewById(R.id.wattageConsumedTextView)
         lineChart = findViewById(R.id.lineChart)
 
-        // Show login dialog first
+        registerBatteryReceiver()
+
         showLoginDialog()
+    }
+
+    private fun registerBatteryReceiver() {
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        registerReceiver(batteryReceiver, filter)
+    }
+
+    private val batteryReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+            batteryLevelTextView.text = "Battery Level: $level%"
+        }
     }
 
     private fun showLoginDialog() {
@@ -43,69 +56,51 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_login, null)
         builder.setView(view)
 
-        val usernameInput: TextView = view.findViewById(R.id.usernameInput)
-        val passwordInput: TextView = view.findViewById(R.id.passwordInput)
+        val usernameInput: EditText = view.findViewById(R.id.usernameInput)
+        val passwordInput: EditText = view.findViewById(R.id.passwordInput)
 
         builder.setPositiveButton("Login") { _, _ ->
             val username = usernameInput.text.toString()
             val password = passwordInput.text.toString()
             if (username == "admin" && password == "password") {
                 Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
-                // After successful login, initialize the UI
-                initializeUI()
+                connectToBluetoothDevice()
             } else {
                 Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
-                // Show the dialog again if login fails
-                showLoginDialog()
             }
         }
-        builder.setNegativeButton("Cancel") { _, _ -> finish() } // Exit app if canceled
+        builder.setNegativeButton("Cancel", null)
         builder.show()
-    }
-
-    private fun initializeUI() {
-        // Make the UI components visible after login
-        batteryLevelTextView.visibility = View.VISIBLE
-        wattageHarvestedTextView.visibility = View.VISIBLE
-        wattageConsumedTextView.visibility = View.VISIBLE
-        lineChart.visibility = View.VISIBLE // Make the chart visible
-
-        // Request Bluetooth permissions and connect to Bluetooth device
-        requestBluetoothPermissions()
-    }
-
-    private fun requestBluetoothPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                REQUEST_BLUETOOTH_PERMISSIONS // Fixed reference here
-            )
-        } else {
-            connectToBluetoothDevice()
-        }
     }
 
     private fun connectToBluetoothDevice() {
         val device: BluetoothDevice? = bluetoothManager.getPairedDevice()
-        device?.let { bluetoothManager.connect(it) }
+        device?.let {
+            bluetoothManager.connect(it)
+            startDataReading()
+        }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                connectToBluetoothDevice()
-            } else {
-                Toast.makeText(this, "Bluetooth permissions are required to use this feature.", Toast.LENGTH_SHORT).show()
+    private fun startDataReading() {
+        thread {
+            while (true) {
+                val data = bluetoothManager.readData()
+                runOnUiThread {
+                    updateUIWithData(data)
+                }
+                Thread.sleep(1000) // Delay for readability
+            }
+        }
+    }
+
+    private fun updateUIWithData(data: String?) {
+        data?.let {
+            // Parse data and update UI accordingly
+            // Example: Assume data format "harvested,consumed"
+            val parts = it.split(",")
+            if (parts.size == 2) {
+                wattageHarvestedTextView.text = "Wattage Harvested: ${parts[0]}W"
+                wattageConsumedTextView.text = "Wattage Consumed: ${parts[1]}W"
             }
         }
     }

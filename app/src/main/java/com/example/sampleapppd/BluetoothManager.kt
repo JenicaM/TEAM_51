@@ -1,12 +1,15 @@
 package com.example.sampleapppd
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.core.content.ContextCompat
+import android.util.Log
+import java.io.BufferedReader
 import java.io.IOException
+import java.io.InputStreamReader
 import java.util.*
 
 class BluetoothManager(private val context: Context) {
@@ -14,39 +17,49 @@ class BluetoothManager(private val context: Context) {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private var bluetoothSocket: BluetoothSocket? = null
 
+    @SuppressLint("MissingPermission")
     fun getPairedDevice(): BluetoothDevice? {
-        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            return null // or handle permission not granted
-        }
         val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
-        return pairedDevices?.firstOrNull() // You can improve this to select a specific device
+        return pairedDevices?.firstOrNull() // Select a specific device if needed
     }
 
     fun connect(device: BluetoothDevice) {
-        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            return // or handle permission not granted
-        }
-
         val uuid: UUID = UUID.fromString("YOUR_UUID_HERE") // Replace with your UUID
         try {
-            bluetoothSocket = device.createRfcommSocketToServiceRecord(uuid)
-            bluetoothSocket?.connect()
+            if (context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                bluetoothSocket = device.createRfcommSocketToServiceRecord(uuid)
+                bluetoothSocket?.connect()
+            } else {
+                Log.e("BluetoothManager", "Bluetooth permission not granted")
+            }
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e("BluetoothManager", "Error connecting to device", e)
+        } catch (e: SecurityException) {
+            Log.e("BluetoothManager", "Security Exception: Permission might be denied", e)
         }
     }
 
     fun readData(): String? {
-        // Read data from the socket
-        // Implement reading from the Bluetooth socket here
-        return null
+        return try {
+            if (bluetoothSocket?.isConnected == true) {
+                val inputStream = bluetoothSocket!!.inputStream
+                val reader = BufferedReader(InputStreamReader(inputStream))
+                reader.readLine() // Read data from the Bluetooth device
+            } else {
+                Log.e("BluetoothManager", "Socket not connected")
+                null
+            }
+        } catch (e: IOException) {
+            Log.e("BluetoothManager", "Error reading data", e)
+            null
+        }
     }
 
     fun disconnect() {
         try {
             bluetoothSocket?.close()
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e("BluetoothManager", "Error disconnecting", e)
         }
     }
 }
