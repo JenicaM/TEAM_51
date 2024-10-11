@@ -10,7 +10,6 @@ import android.os.BatteryManager
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -78,6 +77,8 @@ class MainActivity : AppCompatActivity() {
         device?.let {
             bluetoothManager.connect(it)
             startDataReading()
+        } ?: run {
+            Toast.makeText(this, "No paired Bluetooth device found", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -96,12 +97,25 @@ class MainActivity : AppCompatActivity() {
     private fun updateUIWithData(data: String?) {
         data?.let {
             // Parse data and update UI accordingly
-            // Example: Assume data format "harvested,consumed"
             val parts = it.split(",")
             if (parts.size == 2) {
                 wattageHarvestedTextView.text = "Wattage Harvested: ${parts[0]}W"
                 wattageConsumedTextView.text = "Wattage Consumed: ${parts[1]}W"
+
+                // Update visibility
+                batteryLevelTextView.visibility = TextView.VISIBLE
+                wattageHarvestedTextView.visibility = TextView.VISIBLE
+                wattageConsumedTextView.visibility = TextView.VISIBLE
+                lineChart.visibility = LineChart.VISIBLE
+
+                // Optionally update the chart with new data here
+                // updateChart(parts) // Implement this method as needed
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(batteryReceiver) // Clean up receiver
     }
 }
