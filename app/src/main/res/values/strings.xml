@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">AppPD</string>
+    <string name="battery_icon">Battery Icon</string>
+    <string name="welcome_text">Welcome, Administrator!</string>
+    <string name="wattage_generated">Wattage Generated</string>
+    <string name="wattage_consumed">Wattage Consumed</string>
+    <string name="battery_level">Battery Level</string>
+    <string name="logout">Log Out</string>
+</resources>

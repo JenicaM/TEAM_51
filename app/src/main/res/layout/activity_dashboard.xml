@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray"
+    android:padding="16dp">
+
+    <!-- Welcome Message -->
+    <TextView
+        android:id="@+id/welcomeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:padding="16dp"
+        android:text="@string/welcome_text"
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <!-- Container for Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/welcomeTextView"
+        android:layout_marginTop="32dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- Wattage Generated Button -->
+        <Button
+            android:id="@+id/wattageGeneratedButton"
+            android:layout_width="250dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/wattage_generated"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/teal_700"
+            android:drawableLeft="@drawable/ic_power"
+            android:drawablePadding="8dp"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Wattage Consumed Button -->
+        <Button
+            android:id="@+id/wattageConsumedButton"
+            android:layout_width="250dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/wattage_consumed"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/teal_700"
+            android:drawableLeft="@drawable/ic_consumption"
+            android:drawablePadding="8dp"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Battery Level Button -->
+        <Button
+            android:id="@+id/batteryLevelButton"
+            android:layout_width="250dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/battery_level"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/teal_700"
+            android:drawableLeft="@drawable/ic_battery"
+            android:drawablePadding="8dp"
+            android:padding="12dp"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Logout Button -->
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"
+        android:text="@string/logout"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/red"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+</RelativeLayout>

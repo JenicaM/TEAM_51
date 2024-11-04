@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/gray">
+
+    <!-- Battery Icon -->
+    <ImageView
+        android:id="@+id/batteryImageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/battery_empty"
+        android:contentDescription="@string/battery_icon" />
+
+    <!-- Battery Level Text -->
+    <TextView
+        android:id="@+id/batteryLevelTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/batteryImageView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Battery Level"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+</RelativeLayout>
